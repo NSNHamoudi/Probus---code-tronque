@@ -4,4 +4,4 @@ Le reposotory présent contient des extraits (tronqués) du code source de l'out
 
 Ces extraits de code sont publiés dans le cadre de l'évaluation de ce stage et du mémoire qui en a découlé.
 
-## Attention : Ce code n'est pas exécutable en déhors de l'INA
+## Attention : Ce code n'est pas exécutable en dehors de l'INA, et les extraits ici-présents ne sont partagés que dans une finalité académique.
