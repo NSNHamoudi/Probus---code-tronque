@@ -1,0 +1,569 @@
+{% extends "partials/conteneur.html" %}
+
+{% block titre %}Instance {{requete}}{% endblock %}
+
+{% block body %}
+
+            <button class="dropdown top-btn" id="toggle-dropdown">Filtrer les colonnes</button>
+            <button class="ajout-btn" onclick="openModal('modal-{{ instanceid }}')">Ajouter une relation</button> <!--A CHANGER SANS LA MEME VALEUR QUE LE MODAL DU DESSOUS-->
+            <div id="dropdown-panel"></div>
+            <div class="modal-overlay" id="modal-{{ instanceid }}">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3>Ajouter une relation à l'instance {{ instanceid }}</h3>
+                                <button class="modal-close" onclick="closeModal('modal-{{ instanceid }}')">×</button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="form-{{ instanceid }}" onsubmit="return false;">
+                                    <input type="hidden" name="relation">
+                                    <input type="hidden" name="relationid">
+                                    <input type="hidden" name="instanceid" value="{{ instanceid }}">
+                                    <input type="hidden" name="relationtype"></input>
+                                    <div class="form-group">
+                                        <label for="relation">relation</label>
+                                        <select id="relation" name="relation" required>
+                                            {% for entite in entites %}
+                                            <option value="{{ entite }}" id="relation">{{ entite }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <label for="relationid">relationid (renseigner l'id de l'entité à ajouter)</label>
+                                        <input type="text" id="relationid" name="relationid" required>
+                                        <label for="relationtype">relationtype</label>
+                                        <select id="relationtype" name="relationtype" required>
+                                            {% for id, value in instance_relationtype.items() %}
+                                            <option value="{{ id }}">{{ id }} ({{ value }})</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button class="modal-btn cancel" onclick="closeModal('modal-{{ instanceid }}')">Annuler</button>
+                                <button class="modal-btn validate" onclick="submitAddForm('{{ instanceid }}')"> Valider </button>
+
+                                </div>
+                        </div>
+            </div>
+            <div>
+                <section class="instance" id="instance">
+                    <div class="id-header">
+                        <h2>Instance</h2>
+                        <span class="id-main">instanceid : <span class="valeur">{{ instanceid }}</span></span>
+                    </div>
+                    <button class="btn-main" onclick="openModal('modal-{{ instancetype }}')">Modifier les éléments</button>
+                    <div class = "encart-container">
+                        <section class="encart">
+                            <h3>duration <br>(hh:mm:ss)</h3>
+                            <section class="sousencart">{{ duration_conv }}</section>
+                            <section class="sousencart">{{ duration }} millisecondes</section>
+                        </section>
+                        <section class="encart">
+                            <h3>instancetype</h3>
+                            <section class="sousencart">{{ instancetype }}</section>
+                            <section class="sousencart">{{ typevalue }}</section>
+                        </section>
+                        <section class="encart">
+                            <h3>mediatype</h3>
+                            <section class="sousencart">{{ mediatype }}</section>
+                            <section class="sousencart">{{ mediavalue }}</section>
+                        </section>
+                        <section class="encart">
+                            <h3>provenance</h3>
+                            <section class="sousencart">{{ provenance }}</section>
+                        </section>
+                        <section class="encart">
+                            <h3>status</h3>
+                            <section class="sousencart">{{ status }}</section>
+                        </section>
+                    </div>
+                    <!-- Fenêtre de modification d'instance -->
+                    <div class="modal-overlay" id="modal-{{ instanceid }}">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3>Informations à modifier en cours de définition...</h3>
+                                <button class="modal-close" onclick="closeModal('modal-{{ instancetype }}')">×</button>
+                            </div>
+                            <div class="modal-footer">
+                                <button class="modal-btn cancel" onclick="closeModal('modal-{{ instancetype }}')">Annuler</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+            <div class="ajouts-container" id="ajoutsContainer">
+                {% for ann in instance_annotation %}
+                <section class="ajout" id="instance_annotation-section-{{ ann.annotationid }}">
+                        <div class="id-header">
+                            <h2 id="instance_annotation-{{ ann.annotationid }}">instance_annotation</h2>
+                            <a href="{{ url_for('annotation') }}?instanceid={{requete}}&annotationid={{ann.annotationid}}">
+                            <span class="id-main"><span class="valeur"> Voir plus d'informations </span></span>
+                            </a>
+                        </div>
+                        <div class="encart-container">
+                            <section class="encart">
+                            <h3>relationtype</h3>
+                                <section class="sousencart">{{ ann.relationtype }}</section>
+                            </section>
+                            <section class="encart">
+                            <h3>provenance</h3>
+                                <section class="sousencart">{{ ann.provenance }}</section>
+                            </section>
+                        </div>
+                    <button class="btn" onclick="openModal('modal-{{ ann.annotationid }}')">Modifier les éléments</button>
+                    <button class="btn-suppr">X</button>
+                    <!-- Fenêtre de modification d'instance_annotation -->
+                    <div class="modal-overlay" id="modal-{{ ann.annotationid }}">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3>Modifier les éléments de la relation instance_annotation {{ ann.annotationid }}</h3>
+                                <button class="modal-close" onclick="closeModal('modal-{{ ann.annotationid }}')">×</button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="form-{{ ann.annotationid }}" onsubmit="return false;">
+                                    <input type="hidden" name="relation" value="instance_annotation">
+                                    <input type="hidden" name="relationid" value="{{ ann.annotationid }}">
+                                    <input type="hidden" name="instanceid" value="{{ ann.instanceid }}">
+                                    <input type="hidden" name="relationtype" value="{{ ann.relationtype_id }}"></input>
+                                    <div class="form-group">
+                                        <label for="new_relationtype">relationtype (actuellement {{ ann.relationtype }})</label>
+                                        <select id="new_relationtype" name="new_relationtype" required>
+                                            {% for id, value in instance_relationtype.items() %}
+                                            <option value="{{ id }}">{{ id }} ({{ value }})</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button class="modal-btn delete" onclick="submitDeleteForm('{{ ann.annotationid }}')">Supprimer</button>
+                                <button class="modal-btn cancel" onclick="closeModal('modal-{{ ann.annotationid }}')">Annuler</button>
+                                <button class="modal-btn validate" onclick="submitModifyForm('{{ ann.annotationid }}', 'instance_annotation')">Valider</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                {% endfor %}
+                {% for agg in instance_aggregation %}
+                <section class="ajout" id="instance_aggregation-section-{{ agg.aggregationid }}">
+                    <div class="id-header">
+                        <h2 id="instance_aggregation-{{ agg.aggregationid }}">instance_aggregation</h2>
+                        <a href="{{ url_for('aggregation') }}?instanceid={{requete}}&aggregationid={{agg.aggregationid}}">
+                        <span class="id-main"><span class="valeur"> Voir plus d'informations </span></span>
+                        </a>
+                    </div>
+                    <div class="encart-container">
+                        <section class="encart">
+                        <h3>relationtype</h3>
+                            <section class="sousencart">{{ agg.relationtype }}</section>
+                        </section>
+                        <section class="encart">
+                        <h3>provenance</h3>
+                            <section class="sousencart">{{ agg.provenance }}</section>
+                        </section>
+                    </div>
+                    <button class="btn" onclick="openModal('modal-{{ agg.aggregationid }}')">Modifier les éléments</button>
+                    <button class="btn-suppr">X</button>
+                    <!-- Fenêtre de modification d'instance_aggregation -->
+                    <div class="modal-overlay" id="modal-{{ agg.aggregationid }}">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3>Modifier les éléments de la relation instance_aggregation {{ agg.aggregationid }}</h3>
+                                <button class="modal-close" onclick="closeModal('modal-{{ agg.aggregationid }}')">×</button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="form-{{ agg.aggregationid }}" onsubmit="return false;">
+                                    <input type="hidden" name="relation" value="instance_aggregation">
+                                    <input type="hidden" name="relationid" value="{{ agg.aggregationid }}">
+                                    <input type="hidden" name="instanceid" value="{{ agg.instanceid }}">
+                                    <input type="hidden" name="relationtype" value="{{ agg.relationtype_id }}"></input>
+                                    <div class="form-group">
+                                        <label for="new_relationtype">relationtype (actuellement {{ agg.relationtype }})</label>
+                                        <select id="new_relationtype" name="new_relationtype" required>
+                                            {% for id, value in instance_relationtype.items() %}
+                                            <option value="{{ id }}">{{ id }} ({{ value }})</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button class="modal-btn delete" onclick="submitDeleteForm('{{ agg.aggregationid }}')">Supprimer</button>                            </div>                                
+                                <button class="modal-btn cancel" onclick="closeModal('modal-{{ agg.aggregationid }}')">Annuler</button>
+                                <button class="modal-btn validate" onclick="submitModifyForm('{{ agg.aggregationid }}', 'instance_aggregation')">Valider</button>
+                        </div>
+                    </div>
+                </section>
+                {% endfor %}
+                {% for ar in instance_archivegroup %}
+                <section class="ajout" id="instance_archivegroup-section-{{ ar.archivegroupid }}">
+                    <div class="id-header">
+                        <h2 id="instance_archivegroup-{{ ar.archivegroupid }}">instance_archivegroup</h2>
+                        <a href="{{ url_for('archivegroup') }}?instanceid={{requete}}&archivegroupid={{ar.archivegroupid}}">
+                        <span class="id-main"><span class="valeur">Voir plus d'informations  </span></span>
+                        </a>
+                    </div>
+                    <div class="encart-container">
+                        <section class="encart">
+                        <h3>relationtype</h3>
+                            <section class="sousencart">{{ ar.relationtype }}</section>
+                        </section>
+                        <section class="encart">
+                        <h3>provenance</h3>
+                            <section class="sousencart">{{ ar.provenance }}</section>
+                        </section>
+                    </div>
+                    <button class="btn" onclick="openModal('modal-{{ ar.archivegroupid }}')">Modifier les éléments</button>
+                    <button class="btn-suppr">X</button>
+                    <!-- Fenêtre de modification d'instance_archivegroup -->
+                    <div class="modal-overlay" id="modal-{{ ar.archivegroupid }}">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3>Modifier les éléments de la relation instance_archivegroup {{ ar.archivegroupid }}</h3>
+                                <button class="modal-close" onclick="closeModal('modal-{{ ar.archivegroupid }}')">×</button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="form-{{ ar.archivegroupid }}" onsubmit="return false;">
+                                    <input type="hidden" name="relation" value="instance_archivegroup">
+                                    <input type="hidden" name="relationid" value="{{ ar.archivegroupid }}">
+                                    <input type="hidden" name="instanceid" value="{{ ar.instanceid }}">
+                                    <input type="hidden" name="relationtype" value="{{ ar.relationtype_id }}"></input>
+                                    <div class="form-group">
+                                        <label for="new_relationtype">relationtype (actuellement {{ ar.relationtype }})</label>
+                                        <select id="new_relationtype" name="new_relationtype" required>
+                                            {% for id, value in instance_relationtype.items() %}
+                                            <option value="{{ id }}">{{ id }} ({{ value }})</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button class="modal-btn delete" onclick="submitDeleteForm('{{ ar.archivegroupid }}')">Supprimer</button>
+                                <button class="modal-btn cancel" onclick="closeModal('modal-{{ ar.archivegroupid }}')">Annuler</button>
+                                <button class="modal-btn validate" onclick="submitModifyForm('{{ ar.archivegroupid }}', 'instance_archivegroup')">Valider</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                {% endfor %}
+                {% for cr in instance_credit %}
+                <section class="ajout" id="instance_credit-section-{{ cr.creditid }}">
+                    <div class="id-header">
+                        <h2 id="instance_credit-{{ cr.creditid }}">instance_credit</h2>
+                        <a href="{{ url_for('credit') }}?instanceid={{requete}}&creditid={{cr.creditid}}">
+                        <span class="id-main"><span class="valeur"> Voir plus d'informations </span></span>
+                        </a>
+                    </div>
+                    <div class="encart-container">
+                        <section class="encart">
+                            <h3>relationtype</h3>
+                            <section class="sousencart">{{ cr.relationtype }}</section>
+                        </section>
+                        <section class="encart">
+                            <h3>{{cr.typevalue}}</h3>
+                            <section class="sousencart">{{ cr.agent }}</section>
+                        </section>
+
+                    </div>
+                    <button class="btn" onclick="openModal('modal-{{ cr.creditid }}')">Modifier les éléments</button>
+                    <button class="btn-suppr">X</button>
+                    <!-- Fenêtre de modification d'instance_credit -->
+                    <div class="modal-overlay" id="modal-{{ cr.creditid }}">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3>Modifier les éléments de la relation instance_credit {{ cr.creditid }}</h3>
+                                <button class="modal-close" onclick="closeModal('modal-{{ cr.creditid }}')">×</button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="form-{{ cr.creditid }}" onsubmit="return false;">
+                                    <input type="hidden" name="relation" value="instance_credit">
+                                    <input type="hidden" name="relationid" value="{{ cr.creditid }}">
+                                    <input type="hidden" name="instanceid" value="{{ cr.instanceid }}">
+                                    <input type="hidden" name="relationtype" value="{{ cr.relationtype_id }}"></input>
+                                    <div class="form-group">
+                                        <label for="new_relationtype">relationtype (actuellement {{ cr.relationtype }})</label>
+                                        <select id="new_relationtype" name="new_relationtype" required>
+                                            {% for id, value in instance_relationtype.items() %}
+                                            <option value="{{ id }}">{{ id }} ({{ value }})</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button class="modal-btn delete" onclick="submitDeleteForm('{{ cr.creditid }}')">Supprimer</button>
+                                <button class="modal-btn cancel" onclick="closeModal('modal-{{ cr.creditid }}')">Annuler</button>
+                                <button class="modal-btn validate" onclick="submitModifyForm('{{ cr.creditid }}', 'instance_credit')">Valider</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                {% endfor %}
+                {% for evt in instance_event %}
+                <section class="ajout" id="instance_event-section-{{ evt.eventid }}">
+                        <div class="id-header">
+                            <h2 id="instance_event-{{ evt.eventid }}">instance_event</h2>
+                            <a href="{{ url_for('event') }}?instanceid={{requete}}&eventid={{evt.eventid}}"><span class="id-main"><span class="valeur"> Voir plus d'informations </span></span></a>
+                        </div>
+                        <div class="encart-container">                          
+                            <section class="encart">
+                            <h3>relationtype</h3>
+                                <section class="sousencart">{{ evt.relationtype }}</section>
+                            </section>
+                            <section class="encart">
+                            <h3>provenance</h3>
+                                <section class="sousencart">{{ evt.provenance }}</section>
+                            </section>
+                        </div>
+                        <button class="btn" onclick="openModal('modal-{{ evt.eventid }}')">Modifier les éléments</button>
+                        <button class="btn-suppr">X</button>
+                        <!-- Fenêtre de modification d'instance_event -->
+                    <div class="modal-overlay" id="modal-{{ evt.eventid }}">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3>Modifier les éléments de la relation instance_event {{ evt.eventid }}</h3>
+                                <button class="modal-close" onclick="closeModal('modal-{{ evt.eventid }}')">×</button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="form-{{ evt.eventid }}" onsubmit="return false;">
+                                    <input type="hidden" name="relation" value="instance_event">
+                                    <input type="hidden" name="relationid" value="{{ evt.eventid }}">
+                                    <input type="hidden" name="instanceid" value="{{ evt.instanceid }}">
+                                    <input type="hidden" name="relationtype" value="{{ evt.relationtype_id }}"></input>
+                                    <div class="form-group">
+                                        <label for="new_relationtype">relationtype (actuellement {{ evt.relationtype }})</label>
+                                        <select id="new_relationtype" name="new_relationtype" required>
+                                            {% for id, value in instance_relationtype.items() %}
+                                            <option value="{{ id }}">{{ id }} ({{ value }})</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button class="modal-btn delete" onclick="submitDeleteForm('{{ evt.eventid }}')">Supprimer</button>
+                                <button class="modal-btn cancel" onclick="closeModal('modal-{{ evt.eventid }}')">Annuler</button>
+                                <button class="modal-btn validate" onclick="submitModifyForm('{{ evt.eventid }}', 'instance_event')">Valider</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                {% endfor %}
+                {% for idt in instance_identifier %}
+                <section class="ajout" id="instance_identifier-section-{{ idt.identifierid }}">
+                    <div class="id-header">
+                        <h2 id="instance_identifier-{{ idt.identifierid }}">instance_identifier</h2>
+                        <a href="{{ url_for('identifier') }}?instanceid={{requete}}&identifierid={{idt.identifierid}}">
+                        <span class="id-main"><span class="valeur"> Voir plus d'informations </span></span>
+                        </a>
+                    </div>
+                    <div class="encart-container">
+                        <section class="encart">
+                        <h3>identifiant métier/externe</h3>
+                            <section class="sousencart">{{ idt.value }}</section>
+                        </section>
+                        <section class="encart">
+                        <h3>relationtype</h3>
+                            <section class="sousencart">{{ idt.relationtype }}</section>
+                        </section>
+                        <section class="encart">
+                        <h3>provenance</h3>
+                            <section class="sousencart">{{ idt.type }}</section>
+                        </section>
+                    </div>
+                    <button class="btn" onclick="openModal('modal-{{ idt.identifierid }}')">Modifier les éléments</button>
+                    <button class="btn-suppr">X</button>
+                    <!-- Fenêtre de modification d'instance_identifier -->
+                    <div class="modal-overlay" id="modal-{{ idt.identifierid }}">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3>Modifier les éléments de la relation instance_identifier {{ idt.identifierid }} </h3>
+                                <button class="modal-close" onclick="closeModal('modal-{{ idt.identifierid }}')">×</button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="form-{{ idt.identifierid }}" onsubmit="return false;">
+                                    <input type="hidden" name="relation" value="instance_identifier">
+                                    <input type="hidden" name="relationid" value="{{ idt.identifierid }}">
+                                    <input type="hidden" name="instanceid" value="{{ idt.instanceid }}">
+                                    <input type="hidden" name="relationtype" value="{{ idt.relationtype_id }}"></input>
+                                    <div class="form-group">
+                                        <label for="new_relationtype">relationtype (actuellement {{ idt.relationtype }})</label>
+                                        <select id="new_relationtype" name="new_relationtype" required>
+                                            {% for id, value in instance_relationtype.items() %}
+                                            <option value="{{ id }}">{{ id }} ({{ value }})</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button class="modal-btn delete" onclick="submitDeleteForm('{{ idt.identifierid }}')">Supprimer</button>
+                                <button class="modal-btn cancel" onclick="closeModal('modal-{{ idt.identifierid }}')">Annuler</button>
+                                <button class="modal-btn validate" onclick="submitModifyForm('{{ idt.identifierid }}', 'instance_identifier')">Valider</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                {% endfor %}
+                {% for sl in instance_selector %}
+                <section class="ajout" id="instance_selector-section-{{ sl.selectorid }}">
+                    <div class="id-header">
+                        <h2 id="instance_selector-{{ sl.selectorid }}">instance_selector</h2>
+                        <a href="{{ url_for('selector') }}?instanceid={{requete}}&selectorid={{sl.selectorid}}">
+                        <span class="id-main"><span class="valeur"> Voir plus d'informations </span></span>
+                        </a>
+                    </div>
+                    <div class="encart-container">
+                        <section class="encart">
+                            <h3>relationtype</h3>
+                            <section class="sousencart">{{ sl.relationtype }}</section>
+                        </section>
+                        <section class="encart">
+                            <h3>provenance</h3>
+                            <section class="sousencart">{{ sl.provenance }}</section>
+                        </section>
+                    </div>
+                    <button class="btn" onclick="openModal('modal-{{ sl.selectorid }}')">Modifier les éléments</button>
+                    <button class="btn-suppr">X</button>
+                    <!-- Fenêtre de modification d'instance_selector -->
+                    <div class="modal-overlay" id="modal-{{ sl.selectorid }}">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3>Modifier les éléments de la relation instance_selector {{ sl.selectorid }}</h3>
+                                <button class="modal-close" onclick="closeModal('modal-{{ sl.selectorid }}')">×</button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="form-{{ sl.selectorid }}" onsubmit="return false;">
+                                    <input type="hidden" name="relation" value="instance_selector">
+                                    <input type="hidden" name="relationid" value="{{ sl.selectorid }}">
+                                    <input type="hidden" name="instanceid" value="{{ sl.instanceid }}">
+                                    <input type="hidden" name="relationtype" value="{{ sl.relationtype_id }}"></input>
+                                    <div class="form-group">
+                                        <label for="new_relationtype">relationtype (actuellement {{ sl.relationtype }})</label>
+                                        <select id="new_relationtype" name="new_relationtype" required>
+                                            {% for id, value in instance_relationtype.items() %}
+                                            <option value="{{ id }}">{{ id }} ({{ value }})</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button class="modal-btn delete" onclick="submitDeleteForm('{{ sl.selectorid }}')">Supprimer</button>
+                                <button class="modal-btn cancel" onclick="closeModal('modal-{{ sl.selectorid }}')">Annuler</button>
+                                <button class="modal-btn validate" onclick="submitModifyForm('{{ sl.selectorid }}', 'instance_selector')">Valider</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                {% endfor %}
+                {% for txt in instance_text %}
+                <section class="ajout" id="instance_text-section-{{ txt.textid }}">
+                        <div class="id-header">
+                            <h2 id="instance_text-{{ txt.textid }}">instance_text</h2>
+                            <a href="{{ url_for('text') }}?instanceid={{requete}}&textid={{txt.textid}}">
+                            <span class="id-main"><span class="valeur"> Voir plus d'informations </span></span>
+                            </a>
+                        </div>
+                        <div class="encart-container">
+                            <section class="encart">
+                            <h3>relationtype</h3>
+                                <section class="sousencart">{{ txt.relationtype }}</section>
+                            </section>
+                            <section class="encart">
+                            <h3>provenance</h3>
+                                <section class="sousencart">{{ txt.provenance }}</section>
+                            </section>
+                        </div>
+                    <button class="btn" onclick="openModal('modal-{{ txt.textid}}')">Modifier les éléments</button>
+                    <button class="btn-suppr">X</button>
+                    <!-- Fenêtre de modification d'instance_text -->
+                    <div class="modal-overlay" id="modal-{{ txt.textid }}">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3>Modifier les éléments de la relation instance_text {{ txt.textid }}</h3>
+                                <button class="modal-close" onclick="closeModal('modal-{{ txt.textid }}')">×</button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="form-{{ txt.textid }}" onsubmit="return false;">
+                                    <input type="hidden" name="relation" value="instance_text">
+                                    <input type="hidden" name="relationid" value="{{ txt.textid }}">
+                                    <input type="hidden" name="instanceid" value="{{ txt.instanceid }}">
+                                    <input type="hidden" name="relationtype" value="{{ txt.relationtype_id }}"></input>
+                                    <div class="form-group">
+                                        <label for="new_relationtype">relationtype (actuellement {{ txt.relationtype }})</label>
+                                        <select id="new_relationtype" name="new_relationtype" required>
+                                            {% for id, value in instance_relationtype.items() %}
+                                            <option value="{{ id }}">{{ id }} ({{ value }})</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button class="modal-btn delete" onclick="submitDeleteForm('{{ txt.textid }}')">Supprimer</button>
+                                <button class="modal-btn cancel" onclick="closeModal('modal-{{ txt.textid }}')">Annuler</button>
+                                <button class="modal-btn validate" onclick="submitModifyForm('{{ txt.textid }}', 'instance_text')">Valider</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                {% endfor %}
+                {% for us in instance_usage %}
+                <section class="ajout" id="instance_usage-section-{{ us.usageid }}">
+                    <div class="id-header">
+                        <h2 id="instance_usage-{{ us.usageid }}">instance_usage</h2>
+                        <a href="{{ url_for('usage') }}?instanceid={{requete}}&usageid={{us.usageid}}">
+                        <span class="id-main"><span class="valeur"> Voir plus d'informations </span></span>
+                        </a>
+                    </div>
+                    <div class="encart-container">
+                        <section class="encart">
+                            <h3>relationtype</h3>
+                            <section class="sousencart">{{ us.relationtype }}</section>
+                        </section>
+                        <section class="encart">
+                            <h3>provenance</h3>
+                            <section class="sousencart">{{ us.provenance }}</section>
+                        </section>
+                        <section class="encart">
+                            <h3>startdate</h3>
+                            <section class="sousencart">{{ us.startdate }}</section>
+                        </section>
+                    </div>
+                    <button class="btn" onclick="openModal('modal-{{ us.usageid }}')">Modifier les éléments</button>
+                    <button class="btn-suppr">X</button>
+                    <!-- Fenêtre de modification d'instance_usage -->
+                    <div class="modal-overlay" id="modal-{{ us.usageid }}">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3>Modifier les éléments de la relation instance_usage {{ us.usageid }}</h3>
+                                <button class="modal-close" onclick="closeModal('modal-{{ us.usageid }}')">×</button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="form-{{ us.usageid }}" onsubmit="return false;">
+                                    <input type="hidden" name="relation" value="instance_usage">
+                                    <input type="hidden" name="relationid" value="{{ us.usageid }}">
+                                    <input type="hidden" name="instanceid" value="{{ us.instanceid }}">
+                                    <input type="hidden" name="relationtype" value="{{ us.relationtype_id }}"></input>
+                                    <div class="form-group">
+                                        <label for="new_relationtype">relationtype (actuellement {{ us.relationtype }})</label>
+                                        <select id="new_relationtype" name="new_relationtype" required>
+                                            {% for id, value in instance_relationtype.items() %}
+                                            <option value="{{ id }}">{{ id }} ({{ value }})</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button class="modal-btn delete" onclick="submitDeleteForm('{{ us.usageid }}')">Supprimer</button>
+                                <button class="modal-btn cancel" onclick="closeModal('modal-{{ us.usageid }}')">Annuler</button>
+                                <button class="modal-btn validate" onclick="submitModifyForm('{{ us.usageid }}', 'instance_usage')">Valider</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                {% endfor %}
+            </div>
+{%endblock%}

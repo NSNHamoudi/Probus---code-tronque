@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <title>{% block titre %}Probus - Accueil{% endblock %}</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='img/probus.ico') }}">
+    {% include "partials/css.html" %}
+    {% include "partials/metadata.html" %}
+    {% block css %}{%endblock%}
+</head>
+<body class="container">
+        <header class="ina-navbar">
+            <div class="left-side">
+                 <a href="{{ url_for('index') }}">
+                    <div class="logo">
+                    <div class="logo-badge">
+                        <img src="{{ url_for('static', filename='img/logo-ina.svg')}}" alt="Logo INA" height="22" width="37">
+                    </div>
+                    <div class="logo-text-group">
+                            <span class="logo-name">Probus</span>
+                            <span class="logo-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="9" height="14" viewBox="0 0 9 14">
+                                <path fill="#0686b1" d="M6.36.8L.81 13.4h2.298L8.658.8z"></path>
+                            </svg>
+                            </span>
+                        <div class="logo-menu">
+                        </div>
+                    </div>
+                    </div>
+                </a>
+            </div>
+            <div class="right-side">
+                <span class="app-tag">Utilisateur</span>
+                <button class="user-btn">
+                    <img src="{{ url_for('static', filename='img/user-profile.svg') }}" alt="Profil Utilisateur">
+                </button>
+            </div>
+        </header>
+        <main> 
+            {% include "partials/formulaires/recherche.html" %}
+            {% block body %}{% endblock %}
+        </main>
+            {% include "partials/scriptjs.html" %}
+        <footer></footer>
+    </body>
+</html

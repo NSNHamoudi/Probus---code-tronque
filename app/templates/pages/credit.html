@@ -1,0 +1,271 @@
+{% extends "partials/conteneur.html" %}
+
+{% block titre %}
+    credit
+        {% for agent in agent %}
+            {% for id in idcard %}
+                {% if id.agentid == agent.agentid %}
+                    {{id.namevalue}}
+                {% endif %}
+            {% endfor %}
+        {% endfor %}
+{% endblock %}
+
+{% block body %}
+
+<button class="dropdown top-btn" id="toggle-dropdown">Filtrer les colonnes</button>
+<div id="dropdown-panel"></div>
+<div>
+    <section>
+    <div class="encart-container">
+            <section class="encart-id">
+                {% for agent in agent %}
+                    {% for id in idcard %}
+                        {% if id.agentid == agent.agentid %}
+                            <h3>{{id.namevalue}}</h3>
+                        {% endif %}
+                    {% endfor %}
+                {% endfor %}
+            </section>
+        </div>
+    </section>
+    <section class="instance" id="instance">
+        {% for type in type_text[0:1] %} <!--Bricolage pour pallier le problème d'affichage en triple pas encore résolu-->
+            <div class="id-header">
+                <h2>Credit</h2>
+                <span class="id-main"><span class="valeur">{{type.value}} ({{credittype}})</span></span>
+            </div>
+            <button class="btn-main">Modifier les éléments</button>
+            <div class = "encart-container">
+                {% for agent in agent %}
+                    <section class="encart">
+                        <h3>{{type.value}}</h3>
+                            {% for texts in texts_agent %}
+                               {% if texts.agentid == agent.agentid %}
+                                <section class="sousencart">{{texts.value}} ({{ texts.lang }})<button class="btn_plus">+</button></section>
+                                <section class="ajout-hidden">
+                                    <div class="encart-container">
+                                        <section class="encart">
+                                            <h3>type</h3>
+                                            <section class="sousencart">{{ texts.type }}</section>
+                                        </section>
+                                        <section class="encart">
+                                            <h3>provenance</h3>
+                                            <section class="sousencart">{{ texts.provenance }}</section>
+                                        </section>
+                                        <section class="encart">
+                                            <h3>textid</h3>
+                                            <section class="sousencart">{{ texts.id }}</section>
+                                        </section>
+                                        <section class="encart">
+                                            <h3>lang</h3>
+                                            <section class="sousencart">{{ texts.lang }}</section>
+                                        </section>
+                                        <section class="encart">
+                                            <h3>type</h3>
+                                            <section class="sousencart">{{ texts.texttype }}</section>
+                                        </section>
+                                    </div>
+                                </section>
+                                {% endif %}
+                            {% endfor %}
+                    </section>
+                    {% for concept in concept %}
+                    <section class="encart">
+                        {% for scheme in conceptscheme %}
+                            {% if scheme.conceptid == concept.conceptid %}
+                            <h3>{{ scheme.value }} </h3>
+                            {% for texts in texts_concept %}
+                                {% if texts.conceptid == concept.conceptid %}
+                                    <section class="sousencart">{{texts.value}} ({{ texts.lang }})<button class="btn_plus">+</button></section>
+                                    <section class="ajout-hidden">
+                                        <div class="encart-container">
+                                            <section class="encart">
+                                            <h3>textid</h3>
+                                                <section class="sousencart">{{ texts.id }}</section>
+                                            </section>
+                                            <section class="encart">
+                                            <h3>type</h3>
+                                                <section class="sousencart">{{ texts.texttype }}</section>
+                                            </section>
+                                            <section class="encart">
+                                            <h3>lang</h3>
+                                                <section class="sousencart">{{ texts.lang }}</section>
+                                            </section>
+                                            <section class="encart">
+                                            <h3>provenance</h3>
+                                                <section class="sousencart">{{ texts.provenance }}</section>
+                                            </section>
+                                        </div>
+                                    </section>
+                                {% endif %}
+                            {% endfor %}
+                            {% endif %}
+                        {% endfor %}
+                    </section>     
+                    {% endfor %}
+                {% endfor %}
+                <section class="encart">
+                    <h3>{{ type.type }}</h3>
+                    <section class="sousencart">{{ type.value }}<button class="btn_plus">+</button></section>
+                        <section class="ajout-hidden">
+                            <div class="encart-container">
+                                <section class="encart">
+                                    <h3>id</h3>
+                                    <section class="sousencart">{{ type.id }}</section>                    
+                                </section>
+                                <section class="encart">
+                                    <h3>provenance</h3>
+                                    <section class="sousencart">{{ type.provenance }}</section>                    
+                                </section>
+                                <section class="encart">
+                                    <h3>lang</h3>
+                                    <section class="sousencart">{{ type.lang }}</section>
+                                </section>
+                                <section class="encart">
+                                    <h3>type</h3>
+                                    <section class="sousencart">{{ type.texttype }}</section>
+                                </section>
+                            </div>
+                        </section>
+                </section>
+                <section class="encart">
+                <h3>status</h3>
+                <section class="sousencart">{{status}}</section>
+                </section>
+            </div>
+        {% endfor %}  
+    </section>
+</div>
+<div class="ajouts-container" id="ajoutsContainer">
+    {% for agent in agent %}
+        <section class="ajout" id="agent-section-{{ agent.agentid }}">
+            <div class="id-header">
+                    <h2 id="agent-{{ agent.agentid }}">agent</h2>
+                    <span class="id-main">agentid : <span class="valeur">{{ agent.agentid }}</span></span>
+            </div>
+            <div class="encart-container">
+                {% for atype in agent_type %}
+                    {% if atype.agentid == agent.agentid %}
+                    <section class="encart">
+                        <h3>agenttype</h3>
+                        <section class="sousencart">{{ atype.value }} ({{ agent.agenttype }})<button class="btn_plus">+</button></section>
+                        <section class="ajout-hidden">
+                        <div class="encart-container">
+                            <section class="encart">
+                                <h3>id</h3>
+                                <section class="sousencart">{{ atype.id }}</section>                    
+                            </section>
+                            <section class="encart">
+                                <h3>provenance</h3>
+                                <section class="sousencart">{{ atype.provenance }}</section>                    
+                            </section>
+                            <section class="encart">
+                                <h3>type</h3>
+                                <section class="sousencart">{{ atype.texttype }}</section>                    
+                            </section>
+                            <section class="encart">
+                                <h3>lang</h3>
+                                <section class="sousencart">{{ atype.lang }}</section>                    
+                            </section>
+                        </div>
+                        </section>
+                    </section>
+                    {% endif %}
+                {% endfor %}
+                <section class="encart">
+                <h3>type</h3>
+                    <section class="sousencart">{{ agent.relationtype }}</section>
+                </section>
+                <section class="encart">
+                    <h3>provenance</h3>
+                    <section class="sousencart">{{ agent.provenance }}</section>
+                </section>
+            </div>
+            <button class="btn">Modifier les éléments</button>
+            <button class="btn-suppr">X</button>
+        </section>
+    {% endfor %}
+    {% for concept in concept %}
+        <section class="ajout" id="concept-section-{{ concept.conceptid }}">
+            <div class="id-header">
+                    <h2 id="concept-{{ concept.conceptid }}">concept</h2>
+                    <span class="id-main">conceptid : <span class="valeur">{{ concept.conceptid }}</span></span>
+            </div>
+            <div class="encart-container">
+                <section class = "encart">
+                {% for ctype in concept_type %}
+                    {% if ctype.conceptid == concept.conceptid %}
+                    <h3>concepttype</h3>
+                    <section class="sousencart">{{ ctype.value }} ({{ ctype.concepttype }})<button class="btn_plus">+</button></section>
+                    <section class="ajout-hidden">
+                    <div class="encart-container">
+                        <section class="encart">
+                            <h3>provenance</h3>
+                            <section class="sousencart">{{ ctype.provenance }}</section>
+                        </section>
+                        <section class="encart">
+                            <h3>id</h3>
+                            <section class="sousencart">{{ ctype.id }}</section>
+                        </section>
+                        <section class="encart">
+                            <h3>type</h3>
+                            <section class="sousencart">{{ ctype.texttype }}</section>
+                        </section>
+                        <section class="encart">
+                            <h3>lang</h3>
+                            <section class="sousencart">{{ ctype.lang }}</section>
+                        </section>
+                    </div>
+                    </section>
+                    {% endif %}
+                {% endfor %}
+                </section>
+                <section class="encart">
+                <h3>type</h3>
+                    <section class="sousencart">{{ concept.relationtype }}</section>
+                </section>
+                <section class="encart">
+                <h3>provenance</h3>
+                    <section class="sousencart">{{ concept.provenance }}</section>
+                </section>
+                <section class="encart">
+                <h3>conceptscheme</h3>
+                    {% for scheme in conceptscheme %}
+                        {% if scheme.conceptid == concept.conceptid %}
+                    <section class="sousencart">{{ scheme.value}} <button class="btn_plus">+</button></section>
+                    <section class="ajout-hidden">
+                        <div class="encart-container">
+                            <section class="encart">
+                            <h3>provenance</h3>
+                                <section class="sousencart">{{ scheme.provenance }}</section>
+                            </section>
+                            <section class="encart">
+                            <h3>id</h3>
+                                <section class="sousencart">{{ scheme.id }}</section>
+                            </section>
+                            <section class="encart">
+                            <h3>textid</h3>
+                                <section class="sousencart">{{scheme.textid}}</section>
+                            </section>
+                            <section class="encart">
+                            <h3>lang</h3>
+                                <section class="sousencart">{{ scheme.lang }}</section>
+                            </section>
+                            <section class="encart">
+                            <h3>type</h3>
+                                <section class="sousencart">{{ scheme.texttype }}</section>
+                            </section>
+                        </div>
+                    </section>
+                        {% endif %}
+                    {% endfor %}
+                </section>
+            </div>
+            <button class="btn">Modifier les éléments</button>
+            <button class="btn-suppr">X</button>
+        </section>
+    {% endfor %}
+</div>
+
+{% endblock %}

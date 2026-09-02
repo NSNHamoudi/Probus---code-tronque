@@ -1,0 +1,103 @@
+{% extends "partials/conteneur.html" %}
+
+{% block titre %}Résultats pour l'identifiant technique {{requete}}{% endblock %}
+
+{% block body %}
+<section>
+    <div class="encart-container">
+            <section class="encart-id">
+                    <h3>Instance consultée</h3>
+                        <div>
+                        {% set inst = carte.get('instance')[1] or ['NULL'] %}
+                        {% set txt = carte.get('text')[1] or ['NULL'] %}
+                        {% set evt = carte.get('event')[1] or ['NULL'] %}
+                        {% set ar = carte.get('archivegroup')[1] or ['NULL'] %}
+                            
+                            <p class ="inline">Titre propre de l'instance : <p class ="carteid"> {{ txt.textvalue }}</p> </p>
+                            <p class ="inline">Date de diffusion : <p class ="carteid"> {{ evt.startdate }} --- {{evt.enddate}}</p> </p>                            
+                            <p class ="inline">Durée : <p class ="carteid"> {{ inst.duration }} </p> </p>
+                            <p class ="inline">identifiant technique : <p class ="carteid"> {{ inst.instanceid }}</p> </p>
+                            <p class ="inline">Type de média : <p class ="carteid"> {{ inst.mediatype}}</p> </p>                           
+                            <p class ="inline">Chaîne : <p class ="carteid"> {{ evt.chaine }}</p> </p>
+                            <p class ="inline">Provenance : <p class ="carteid"> {{ evt.provenance }}</p> </p>
+                            <p class ="inline">Fond : <p class ="carteid"> {{ar.value}}</p> </p>                           
+                            <p class ="inline">Instancetype : <p class ="carteid"> {{ inst.instancetype }}</p> </p>
+                            <button class ="inline id-btn"><a href="adresse_notilus/{{inst.instanceid}}">Lien Notilus</a></button>
+                            <button class ="id-btn"><a href ="{{url_for('instance', string=requete)}}">Modifier les relations liées</a></button>
+                        </div>
+            </section>
+    </div>
+</section>
+<section>
+    <div class="encart-container">
+        <section class="encart">
+                <h3>aggregation</h3>
+                {% for agg in resultats.get('aggregations') or ['NULL'] %}
+                <a href="{{ url_for('aggregation', instanceid=resultats.instanceid[0], aggregationid=agg.id, string=requete)}}">
+                    <section class="sousencart">{{ agg.value }} : {{agg.corpus}}</section>
+                </a>
+                {% endfor %}
+        </section>
+        <section class="encart">
+            <h3>annotation</h3>
+            {% for ant in resultats.get('annotations') or ['NULL'] %}
+            <a href="{{ url_for('annotation', instanceid=resultats.instanceid[0], annotationid=ant.id, string=requete)}}">
+                <section class="sousencart">{{ ant.concept }} ({{ant.value}})</section>
+            </a>
+            {% endfor %}
+        </section>
+        <section class="encart">
+            <h3>archivegroup</h3>
+            {% for ar in resultats.get('archivegroups') or ['NULL']%}
+            <a href="{{ url_for('archivegroup', instanceid=resultats.instanceid[0], archivegroupid=ar.id, string=requete)}}">
+                <section class="sousencart">{{ ar.value }} : {{ar.groupe}}</section>
+            </a>
+            {% endfor %}
+        </section>
+        <section class="encart">
+            <h3>credit</h3>
+            {% for cr in resultats.get('credits') or ['NULL'] %}
+            <a href="{{ url_for('credit', instanceid=resultats.instanceid[0], creditid=cr.id, string=requete)}}">
+                <section class="sousencart">{{cr.agent}} ({{ cr.role }})</section>
+            </a>
+            {% endfor %}
+        </section>
+        <section class="encart">
+            <h3>event</h3>
+            {% for ev in resultats.get('eventid') or ['NULL'] %}
+        {% set index = loop.index0 %} <!--Sinon j'ai les dates en double pour une quelconque raison...-->
+        <a href="{{ url_for('event', instanceid=resultats.instanceid[0], eventid=ev, string=requete) }}">
+            <section class="sousencart">
+                {{ resultats.startDate[index] }} / {{ resultats.endDate[index] }}
+            </section>
+        </a>
+            {% endfor %}
+        </section>
+        <section class="encart">
+            <h3>selector</h3>
+            {% for sl in resultats.get('selectors') or ['NULL'] %}
+            <a href="{{ url_for('selector', instanceid=resultats.instanceid[0], selectorid=sl.id, string=requete)}}">
+                <section class="sousencart">{{ sl.type }}</section>
+            </a>
+            {% endfor %}
+        </section>
+        <section class="encart">
+            <h3>usage</h3>
+            {% for us in resultats.get('usages') or ['NULL'] %}
+            <a href="{{ url_for('usage', instanceid=resultats.instanceid[0], usageid=us.id, string=requete)}}">
+                <section class="sousencart">{{ us.value }}</section>
+            </a>
+            {% endfor %}
+        </section>
+        <section class="encart">
+            <h3>text</h3>
+            {% for txt in resultats.get('texts') or ['NULL'] %}
+            <a href="{{ url_for('text', instanceid=resultats.instanceid[0], textid=txt.id, string=requete) }}">
+            <section class="sousencart">
+                {{ txt.type }}
+            </section></a>
+            {% endfor %}
+        </section>
+    </div>
+</section>
+{% endblock body %}

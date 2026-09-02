@@ -1,0 +1,295 @@
+<script>
+        // Attend que le DOM soit chargé
+        document.addEventListener('DOMContentLoaded', function() {
+            // Récupère tout ce qu'il y a à récupérer
+            const toggleDropdown = document.getElementById('toggle-dropdown'); // bouton de sélection des conteneurs 
+            const dropdownPanel = document.getElementById('dropdown-panel'); // Panneau déroulant avec nom des sections ajoutées
+            const ajoutsContainer = document.getElementById('ajoutsContainer'); // conteneurs susmentionnés (pour qu'ils puissent s'afficher ou non, au choix)
+            const container = document.querySelector('.container'); // classe css éponyme (pour conteneur)
+            const typeSelect = document.getElementById('new_relationtype'); // volet déroulant relationtype
+
+            // Remplit le menu déroulant avec des checkbox pour chaque section (basé sur les h2)
+            function fillDropdownPanel() {
+                dropdownPanel.innerHTML = '';
+                const h2s = document.querySelectorAll('h2:not(#instance h2)');
+                h2s.forEach(h2 => {
+                    const label = document.createElement('label');
+                    label.style.display = 'block';
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+
+                    // On récupère l'id de la section parente
+                    const section = h2.closest('.ajout');
+                    checkbox.value = section.id;
+                    checkbox.dataset.sectionId = section.id;
+
+                    // Coche la checkbox si la section est déjà visible
+                    if (section && section.style.display !== 'none') {
+                        checkbox.checked = true;
+                    }
+
+                    label.appendChild(checkbox);
+                    label.appendChild(document.createTextNode(h2.textContent));
+                    dropdownPanel.appendChild(label);
+                });
+            }
+
+            // Affiche/masque le menu déroulant
+            toggleDropdown.addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (dropdownPanel.style.display === 'none' || dropdownPanel.style.display === '') {
+                    fillDropdownPanel();
+                    dropdownPanel.style.display = 'block';
+                } else {
+                    dropdownPanel.style.display = 'none';
+                }
+            });
+
+            // Ferme le menu si on clique ailleurs
+            document.addEventListener('click', function() {
+                dropdownPanel.style.display = 'none';
+            });
+
+            // Empêche la fermeture si on clique dans le menu
+            dropdownPanel.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+
+            // Met à jour la classe du conteneur selon le nombre de colonnes visibles
+            function updateVisibleColumns() {
+                const visibleSections = document.querySelectorAll('.ajout');
+                let visibleCount = 0;
+                visibleSections.forEach(section => {
+                    if (section.style.display !== 'none') {
+                        visibleCount++;
+                    }
+                });
+                ajoutsContainer.className = 'ajouts-container';
+                if (visibleCount > 0) {
+                    ajoutsContainer.classList.add(`data-visible-${Math.min(visibleCount, 6)}`);
+                }
+            }
+
+            // Affiche/masque les sections sélectionnées
+            dropdownPanel.addEventListener('change', function(e) {
+                if (e.target.type === 'checkbox') {
+                    const sectionId = e.target.dataset.sectionId;
+                    const section = document.getElementById(sectionId);
+                    if (section) {
+                        section.style.display = e.target.checked ? 'block' : 'none';
+                        updateVisibleColumns();
+                    }
+                }
+            });
+
+            // Supprime une section quand on clique sur .btn-suppr
+            document.querySelectorAll('.btn-suppr').forEach(button => {
+                button.addEventListener('click', function() {
+                    const section = this.closest('.ajout');
+                    section.style.display = 'none';
+                    const sectionId = section.id;
+                    const checkbox = dropdownPanel.querySelector(`input[data-section-id="${sectionId}"]`);
+                    if (checkbox) checkbox.checked = false;
+                    updateVisibleColumns();
+                });
+            });
+
+            // Initialisation : affiche toutes les sections par défaut (supprimables via "X" ou bouton)
+            document.querySelectorAll('.ajout').forEach(section => {
+                section.style.display = 'block';
+            });
+            updateVisibleColumns();
+
+
+            // Gestion des boutons + pour afficher/masquer le .ajout-hidden suivant
+            document.querySelectorAll('.sousencart .btn_plus').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    // Empêche le déclenchement d'autres événements
+                    e.stopPropagation();
+
+                    // Trouve le .ajout-hidden frère immédiat suivant
+                    const ajoutHidden = this.closest('.sousencart').nextElementSibling;
+
+                    if (ajoutHidden && ajoutHidden.classList.contains('ajout-hidden')) {
+                        if (ajoutHidden.style.display === 'none' || ajoutHidden.style.display === '') {
+                            ajoutHidden.style.display = 'block';
+                            this.textContent = '-';
+                        } else {
+                            ajoutHidden.style.display = 'none';
+                            this.textContent = '+';
+                        }
+                    }
+                });
+            });
+
+
+            // POUR LES VOLETS DEROULANTS DU MODAL ==> où value = businessid (sous condition que instance_relationtype existe dans la route python de la page concernée)
+            {% if (instance_relationtype) and (instance_relationtype.items()) %} // sinon les templates sans instance_relationtype font planter l'outil
+                // Dictionnaire pour lier id et businessid
+                const idToType = {
+                    {% for id, value in instance_relationtype.items() %}
+                    "{{ id }}": "{{ value }}",
+                    {% endfor %}
+                
+                };
+
+            {% endif %}
+            });
+        
+        // Ouvre le modal (ici fenêtre indépendante qui s'affiche par dessus le reste de la page rendue innaccessible jusquà fermeture fenêtre)
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add("active");
+        }
+
+        // Ferme le modal
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove("active");
+        }
+
+        // PUIS PARTIE MODIFICATION
+
+        // Modifie le relationtype
+        function submitModifyForm(annotationid, relation) {
+            const form = document.getElementById(`form-${annotationid}`);
+            const formData = new FormData(form);
+            const data = {};
+
+            for (let [key, value] of formData.entries()) {
+                data[key] = value;
+            }
+
+            // Ajoute les champs manquants (si nécessaire)
+            data.relation = relation;
+            data.relationid = annotationid;
+
+            fetch("/patch_relation", {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data),
+            })
+            .then((response) => {
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        throw new Error(`Erreur ${response.status}: ${text.substring(0, 200)}`);
+                    });
+                }
+                return response.json();
+            })
+            .then((result) => {
+                alert("Modification réussie !");
+                closeModal(`modal-${annotationid}`);
+                location.reload();
+            })
+            .catch((error) => {
+                alert(`Erreur: ${error.message}`);
+                console.error("Détails:", error);  // Affichez l'erreur dans la console
+            });
+        }
+
+
+        // Suppression & Ajout plus dynamiques/moins statique que la modification ci-dessus (même logique pour les deux)
+
+        // Suppression d'un relationtype
+        function submitDeleteForm(relationid) {
+            // Récupère le formulaire correspondant à cette relation
+            const form = document.getElementById(`form-${relationid}`);
+
+            // Récupère les valeurs des champs cachés
+            const relation = form.querySelector('[name="relation"]').value;
+            const instanceid = form.querySelector('[name="instanceid"]').value;
+            const relationtype = form.querySelector('[name="relationtype"]').value;
+
+            // Vérifie que toutes les valeurs sont présentes
+            if (!relation || !relationid || !instanceid || !relationtype) {
+                alert("Veuillez remplir tous les champs !");
+                return;
+            }
+
+            // Prépare les données à envoyer
+            const data = {
+                relation: relation,
+                relationid: relationid,
+                instanceid: instanceid,
+                relationtype: relationtype
+            };
+
+            // Envoie la requête PATCH
+            fetch("/suppr_relation", {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data),
+            })
+            .then((response) => {
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        throw new Error(`Erreur ${response.status}: ${text.substring(0, 200)}`);
+                    });
+                }
+                return response.json();
+            })
+            .then((result) => {
+                alert("Suppression réussie !");
+                closeModal(`modal-${relationid}`);
+                location.reload();
+            })
+            .catch((error) => {
+                alert(`Erreur: ${error.message}`);
+                console.error("Détails:", error);
+            });
+        }
+         // Ajout d'un relationtype
+        function submitAddForm(instanceid) {
+            // Récupère le formulaire correspondant à cette instance
+            const form = document.getElementById(`form-${instanceid}`);
+
+            // Récupère les valeurs des champs (select et input)
+            const relation = form.querySelector('#relation').value;
+            const relationid = form.querySelector('#relationid').value;
+            const relationtype = form.querySelector('#relationtype').value;
+
+            // Vérifie que toutes les valeurs sont présentes
+            if (!relation || !relationid || !relationtype) {
+                alert("Veuillez remplir tous les champs !");
+                return;
+            }
+
+            // Prépare les données à envoyer
+            const data = {
+                instanceid: instanceid,
+                relation: relation,
+                relationid: relationid,
+                relationtype: relationtype
+            };
+
+            // Envoie la requête PATCH
+            fetch("/ajout_relation", {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data),
+            })
+            .then((response) => {
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        throw new Error(`Erreur ${response.status}: ${text.substring(0, 200)}`);
+                    });
+                }
+                return response.json();
+            })
+            .then((result) => {
+                alert("Ajout d'une nouvelle relation réussi !");
+                closeModal(`modal-${instanceid}`);
+                location.reload();
+            })
+            .catch((error) => {
+                alert(`Erreur: ${error.message}`);
+                console.error("Détails:", error);
+            });
+        }
+
+</script>

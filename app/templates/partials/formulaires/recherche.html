@@ -1,0 +1,17 @@
+<form class="search-form" method="get"  action="{{url_for('recherche')}}"> <!--Repris aux travaux précédents de IDD-->
+    <div class="search-wrapper">
+        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/>
+            <path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input 
+        class="search-input" 
+        type="text"
+        name="string"
+        placeholder="Rechercher un identifiant technique"
+        aria-label="Rechercher un identifiant technique"
+        autocomplete="on"
+        value="{{ requete }}"> <!--Requête reste affichée dans barre de recherche-->
+        <button type="submit" class="search-btn">Rechercher</button>
+    </div>
+</form>
